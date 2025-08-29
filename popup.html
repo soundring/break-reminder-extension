@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Break Reminder</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 10px;
+        width: 220px;
+      }
+      h3 {
+        margin-top: 0;
+        font-size: 16px;
+      }
+      label,
+      input {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input[type="number"] {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 8px;
+        width: 100%;
+      }
+      #status {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Break Reminder</h3>
+    <label for="interval">Interval (minutes):</label>
+    <input id="interval" type="number" min="1" value="60" />
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <p id="status"></p>
+    <script src="popup.js"></script>
+  </body>
+</html>
