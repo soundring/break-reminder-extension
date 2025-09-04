@@ -11,31 +11,52 @@
  * @param {number} intervalInMinutes Interval between alarms in minutes
  */
 function scheduleBreakAlarm(intervalInMinutes) {
-  chrome.alarms.clear('breakReminder', () => {
-    chrome.alarms.create('breakReminder', {
-      delayInMinutes: intervalInMinutes,
-      periodInMinutes: intervalInMinutes,
-    });
+  chrome.alarms.create('breakReminder', {
+    delayInMinutes: intervalInMinutes,
+    periodInMinutes: intervalInMinutes,
+  });
+  // Alarm used to refresh the badge text with the remaining time.
+  chrome.alarms.create('badgeUpdate', {
+    delayInMinutes: 0,
+    periodInMinutes: 1,
+  });
+  updateBadge();
+}
+
+/**
+ * Show the minutes remaining until the next break in the badge text.
+ */
+function updateBadge() {
+  chrome.alarms.get('breakReminder', (alarm) => {
+    if (alarm) {
+      const minutes = Math.ceil((alarm.scheduledTime - Date.now()) / 60000);
+      chrome.action.setBadgeText({ text: String(minutes) });
+      chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
+    } else {
+      chrome.action.setBadgeText({ text: '' });
+    }
   });
 }
 
 // On installation or startup, restore any existing alarm if the user had
 // previously activated reminders.
-chrome.runtime.onInstalled.addListener(() => {
+function restoreAlarmFromStorage() {
   chrome.storage.local.get(['interval', 'active'], (data) => {
     if (data.active && typeof data.interval === 'number' && data.interval > 0) {
       scheduleBreakAlarm(data.interval);
+    } else {
+      chrome.action.setBadgeText({ text: '' });
     }
   });
-});
+}
 
-chrome.runtime.onStartup.addListener(() => {
-  chrome.storage.local.get(['interval', 'active'], (data) => {
-    if (data.active && typeof data.interval === 'number' && data.interval > 0) {
-      scheduleBreakAlarm(data.interval);
-    }
-  });
+chrome.runtime.onInstalled.addListener((details) => {
+  restoreAlarmFromStorage();
+  if (details.reason === 'install') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
+  }
 });
+chrome.runtime.onStartup.addListener(restoreAlarmFromStorage);
 
 // Listen for messages from the popup to start or stop reminders.
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -43,18 +64,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     scheduleBreakAlarm(message.interval);
   } else if (message && message.type === 'stop') {
     chrome.alarms.clear('breakReminder');
+    chrome.alarms.clear('badgeUpdate');
+    chrome.action.setBadgeText({ text: '' });
   }
 });
 
 // When the alarm triggers, display a notification to the user.
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm && alarm.name === 'breakReminder') {
-    chrome.notifications.create('', {
-      type: 'basic',
-      iconUrl: 'icons/icon_128.png',
-      title: 'Time for a break!',
-      message: 'Step away from your screen, stretch, hydrate or rest your eyes.',
-      priority: 2,
-    });
+      chrome.notifications.create('', {
+        type: 'basic',
+        iconUrl: 'icon_128.png',
+        title: 'Time for a break!',
+        message: 'Step away from your screen, stretch, hydrate or rest your eyes.',
+        priority: 2,
+      });
+    updateBadge();
+  } else if (alarm && alarm.name === 'badgeUpdate') {
+    updateBadge();
   }
 });

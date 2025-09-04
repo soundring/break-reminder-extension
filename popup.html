@@ -6,40 +6,100 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        padding: 10px;
-        width: 220px;
+        width: 240px;
+        padding: 12px;
+        background: linear-gradient(135deg, #e0f7fa, #fff);
       }
       h3 {
         margin-top: 0;
-        font-size: 16px;
+        font-size: 18px;
+        text-align: center;
       }
-      label,
-      input {
-        display: block;
-        margin-bottom: 5px;
+      .field {
+        margin-bottom: 12px;
+      }
+      label {
+        font-size: 13px;
       }
       input[type="number"] {
         width: 100%;
+        padding: 6px;
         box-sizing: border-box;
       }
-      button {
-        margin-top: 8px;
-        width: 100%;
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 20px;
+      }
+      .slider:before {
+        position: absolute;
+        content: '';
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: #4caf50;
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px);
       }
       #status {
-        margin-top: 10px;
-        font-size: 12px;
-        color: #555;
+        font-size: 13px;
+        text-align: center;
+        margin-top: 8px;
+      }
+      #countdown {
+        text-align: center;
+        font-size: 14px;
+        margin-top: 4px;
+      }
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
       }
     </style>
   </head>
   <body>
     <h3>Break Reminder</h3>
-    <label for="interval">Interval (minutes):</label>
-    <input id="interval" type="number" min="1" value="60" />
-    <button id="start">Start</button>
-    <button id="stop">Stop</button>
+    <div class="field">
+      <label for="interval">Interval (minutes)</label>
+      <input id="interval" type="number" min="1" value="60" />
+    </div>
+    <div class="field toggle-row">
+      <span>Enable</span>
+      <label class="switch">
+        <input id="toggle" type="checkbox" />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <p id="countdown">Next break in: --</p>
     <p id="status"></p>
+    <p style="text-align: center; font-size: 12px;">
+      <a href="PRIVACY_POLICY.md" target="_blank">Privacy Policy</a>
+    </p>
     <script src="popup.js"></script>
   </body>
 </html>
