@@ -21,7 +21,10 @@ function scheduleBreakAlarm(intervalInMinutes) {
 
 // On installation or startup, restore any existing alarm if the user had
 // previously activated reminders.
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
+  }
   chrome.storage.local.get(['interval', 'active'], (data) => {
     if (data.active && typeof data.interval === 'number' && data.interval > 0) {
       scheduleBreakAlarm(data.interval);
