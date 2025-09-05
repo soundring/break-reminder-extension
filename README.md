@@ -6,3 +6,4 @@ A Chrome extension that helps you stay healthy by nudging you to take periodic b
 - Set custom break intervals
 - Toggle reminders on or off with a single switch
 - Countdown display and badge timer so you always know when the next break is due
+- Snooze a reminder or stop notifications directly from the browser notification

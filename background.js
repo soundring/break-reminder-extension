@@ -9,10 +9,11 @@
  * Create or reset a repeating alarm with the given interval.
  *
  * @param {number} intervalInMinutes Interval between alarms in minutes
+ * @param {number} [initialDelay] Optional initial delay before the first alarm
  */
-function scheduleBreakAlarm(intervalInMinutes) {
+function scheduleBreakAlarm(intervalInMinutes, initialDelay = intervalInMinutes) {
   chrome.alarms.create('breakReminder', {
-    delayInMinutes: intervalInMinutes,
+    delayInMinutes: initialDelay,
     periodInMinutes: intervalInMinutes,
   });
   // Alarm used to refresh the badge text with the remaining time.
@@ -72,15 +73,45 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // When the alarm triggers, display a notification to the user.
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm && alarm.name === 'breakReminder') {
-      chrome.notifications.create('', {
+      chrome.notifications.create('breakNotification', {
         type: 'basic',
         iconUrl: 'icon_128.png',
         title: 'Time for a break!',
         message: 'Step away from your screen, stretch, hydrate or rest your eyes.',
         priority: 2,
+        buttons: [
+          { title: 'Snooze 5 min' },
+          { title: 'Stop reminders' },
+        ],
+        requireInteraction: false,
       });
     updateBadge();
   } else if (alarm && alarm.name === 'badgeUpdate') {
     updateBadge();
   }
 });
+
+// Handle notification button clicks for snoozing or stopping reminders.
+chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+  if (notificationId === 'breakNotification') {
+    if (buttonIndex === 0) {
+      chrome.storage.local.get(['interval'], (data) => {
+        if (typeof data.interval === 'number') {
+          scheduleBreakAlarm(data.interval, 5);
+        }
+      });
+    } else if (buttonIndex === 1) {
+      chrome.storage.local.set({ active: false }, () => {
+        chrome.alarms.clear('breakReminder');
+        chrome.alarms.clear('badgeUpdate');
+        chrome.action.setBadgeText({ text: '' });
+      });
+    }
+    chrome.notifications.clear(notificationId);
+  }
+});
+
+// Expose functions for testing.
+if (typeof module !== 'undefined') {
+  module.exports = { scheduleBreakAlarm };
+}
